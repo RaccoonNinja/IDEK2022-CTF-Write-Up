@@ -1,8 +1,8 @@
-# IDEK2022-CTF-Write-Up
+# IDEK2022 CTF Write Up
 
 Original write-ups by :raccoon::ninja: on [IDEK2022-CTF](https://ctf.idek.team).
 
-This is my first time playing in a team and I'm so honoured to have this opportunity. They are very nice and supportive and most importantly, they are **really strong**. I'm overjoyed that I can contribute and it was a very fun experience.
+This is my first time playing in a team ([B6A](https://b6a.black)) and I'm so honoured to have this opportunity. They are very nice and supportive and most importantly, they are **really strong**. I'm overjoyed that I can contribute and it was a very fun experience.
 
 ### Solved challenges that I took some part:
 - Web: Simple File Server (most of the work), JSON Beautifier (initial research)
