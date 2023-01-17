@@ -110,6 +110,7 @@ Thinking backwards:
 - It's generally harder to screw up security for `JSON.stringify` when compared to other serializations like in PHP or Java, but here we see an example. **`cols` is definitely fishy so let's look at [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#space)**
   ![MDN JSON.stringify](https://i.imgur.com/BvNNWAn.png)
 - If we use a `` ` `` for a string array we can get string context bypass:
+  
   ![String context bypass with \` for string array, perfectly normal JavaSccript behavior](https://i.imgur.com/D5pfxrj.png)
 - We need to set `this.config?.opts?.cols` to some *string* that we control as well as `this.config?.debug` to any truthy value. A good candidate is **[DOM clobbering](https://portswigger.net/research/dom-clobbering-strikes-back)** (I also considered prototype pollution but it is very unlikely in retrospect)
 
@@ -119,13 +120,14 @@ Here comes the true challenge which got over my head during the CTF for a couple
 
 - For a very systematic approach, a [good resource by PortSwigger](https://portswigger.net/research/dom-clobbering-strikes-back) describes how the properties can be enumerated. After enumeration, only **frameset:cols** can be string (textarea:cols is number).
 - **frameset** is a [really special old-school HTML element](https://html.spec.whatwg.org/multipage/obsolete.html#frameset). HTML documents using `<frameset>` [cannot at the same time use `<body>`](https://www.doyler.net/security-not-included/frameset-xss).
-  ![image](https://user-images.githubusercontent.com/114584910/212973636-f723e6a0-3791-4860-965c-dabb0f90426c.png)
+  
+  ![frameset has issues with body](https://user-images.githubusercontent.com/114584910/212973636-f723e6a0-3791-4860-965c-dabb0f90426c.png)
 - As CSP `frame-src` is absent, we can inject `<iframe>`s into the page, which solves 2 problems:
   - We can now use `<frameset>`, despite it being in a iframe
   - `<iframe>` is also a common payload for DOM clobbering ([DOM Clobbering payload generator](https://domclob.xyz/domc_payload_generator/))
 - At this moment we can already have ``"<iframe name=config srcdoc='<frameset id=opts cols=&quot;`&quot;>'></iframe>"``
   
-  ![image](https://user-images.githubusercontent.com/114584910/212976594-78e029da-4054-4fb8-a423-5aa76cc4bf78.png)
+  ![payload worked](https://user-images.githubusercontent.com/114584910/212976594-78e029da-4054-4fb8-a423-5aa76cc4bf78.png)
 
 - ``"<iframe name=config srcdoc='<frameset id=debug><frameset id=opts cols=&quot;`&quot;>'></iframe>"`` works as well.
 
@@ -157,10 +159,10 @@ Summarising what will happen:
 ## Reflections:
 
 - I knew about DOM Clobbering, the articles by PortSwigger and payload generator; yet I was not very familiar with the specifics of it and was confused by *normal* clobbering and *string* clobbering.
-- I was quite lost in the actual process due to a general infamiliarity with CSPs.
+- I was quite lost in the actual process due to a general ~~noobity~~ infamiliarity with CSPs and DOM clobbering.
 - While restructing the payload bottom-up from `frameset`, direct XSS failed due to `body` issue. After some consultation and research I was able to catch that.
-- There are some details like encodeURIComponent and HTML entities that I often forget
+- There are some details like encodeURIComponent and HTML entities that I often forget and it's quite easy to make typos.
 
 ## Trivia:
 
-- The safe equivalent to `eval` is `JSON.parse`. Converting the `space` parameter to number could be an alternative, but please still avoid `eval`.
+- The safe equivalent to `eval` in this case is `JSON.parse`. Converting the `space` parameter to number *could* be an alternative, but nothing really beats avoiding `eval`.
